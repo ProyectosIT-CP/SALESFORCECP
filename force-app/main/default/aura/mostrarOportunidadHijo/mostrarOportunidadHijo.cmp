@@ -1,0 +1,220 @@
+<aura:component controller="mostrarOportunidadHijo"
+                implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction" 
+                access="global">
+
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="caseSimpleRecord" type="Object" />
+    <aura:attribute name="recordLoadError" type="String" />
+    <aura:attribute name="hijosAvaluo" type="List" default="[]"/>
+    <aura:attribute name="columnasAvaluo" type="List" />
+    <aura:attribute name="mapaModelos" type="Map" default="{}"/> 
+    <aura:attribute name="mapaSubModelos" type="Map" default="{}"/> 
+    <aura:attribute name="modeloDisabled" type="Boolean" default="true" />
+    <aura:attribute name="subModeloDisabled" type="Boolean" default="true" />
+    <aura:attribute name="crearDisabled" type="Boolean" default="false" />
+    <aura:attribute name="listaAnios" type="List" default=""/>
+    <aura:attribute name="listaMarcas" type="List" default=""/>
+    <aura:attribute name="listaModelos" type="List" />
+    <aura:attribute name="listaSubmodelos" type="List" />
+    <aura:attribute name="hijosPreAvaluo" type="List" default="[]"/>
+    <aura:attribute name="columnasPreAvaluo" type="List" />
+    <aura:attribute name="mapaEtapas" type="Map" />
+    <aura:attribute name="modo" type="String" />
+    
+    <force:recordData 
+        aura:id="recordLoader"
+        recordId="{! v.recordId }"
+        fields="StageName" 
+        targetFields="{! v.caseSimpleRecord }"
+        targetError="{! v.recordLoadError }"
+    />
+
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}" />
+
+    <aura:if isTrue="{!and( v.caseSimpleRecord.StageName != 'Listo Para Facturar', 
+                            v.caseSimpleRecord.StageName != 'Facturado', 
+                            v.caseSimpleRecord.StageName != 'Listo Para Entrega', 
+                            v.caseSimpleRecord.StageName != 'Cerrada ganada',
+                            v.caseSimpleRecord.StageName != 'Cerrada perdida'
+                    )}">
+        <aura:if isTrue="{!v.hijosAvaluo.lenght != 0}">
+          <article class="slds-card" style="border:1px solid #dddbda !important">
+            <div class="slds-page-header slds-page-header_record-home">
+              <div class="slds-page-header__row">
+                  <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+                      <div class="slds-media__body">
+                        <div class="slds-page-header__name">
+                          <div class="slds-page-header__name-title" >
+                              <h4 style="font-size: 14px; font-weight: bold;">
+                                <lightning:icon iconName="standard:opportunity" alternativeText="Avaluos" title="Avaluos" size="small"/>  
+                                <span style="padding: 0px 0px 0px 12px;">Avaluos paralelos</span>
+                              </h4>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="slds-page-header__col-actions">
+                    <div class="slds-page-header__controls">
+                      <div class="slds-page-header__control">
+                        <ul class="slds-button-group-list">
+                          <li>
+                            <button class="slds-button slds-button_brand" 
+                                    onclick="{!c.abrirAsociarVehiculoExistente}">
+                                Asociar vehiculo existente
+                            </button>
+                          </li>
+                          <li style="padding-left: 10px;">
+                            <button class="slds-button slds-button_brand" 
+                                    onclick="{!c.abrirAgregarVehiculo}">
+                                Añadir vehiculo nuevo
+                            </button>
+                          </li>
+                          <li style="padding-left: 10px;">
+                            <lightning:buttonIcon iconName="utility:refresh" variant="brand" alternativeText="Refrescar" title="Refrescar" onclick="{!c.refrescarAvaluos}"/>
+                          </li>
+                        </ul>
+                      </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+              <table class="slds-table slds-table_cell-buffer slds-table_bordered" aria-label="Example default base table of Opportunities">
+                <thead>
+                  <tr class="slds-line-height_reset">
+                    <th class="" scope="col">
+                      <div class="slds-truncate" title="Marca">Marca</div>
+                    </th>
+                    <th class="" scope="col">
+                      <div class="slds-truncate" title="Modelo">Modelo</div>
+                    </th>
+                    <th class="" scope="col">
+                      <div class="slds-truncate" title="Placa">Placa</div>
+                    </th>
+                    <th class="" scope="col">
+                      <div class="slds-truncate" title="Vendedor">Vendedor</div>
+                    </th>
+                    <th class="" scope="col">
+                      <div class="slds-truncate" title="Etapa">Etapa</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <aura:iteration items="{!v.hijosAvaluo}" var="opp">
+                    <tr class="slds-hint-parent">
+                      <td data-label="Marca">
+                        <div class="slds-truncate" title="{!opp.marca}">{!opp.marca}</div>
+                      </td>
+                      <td data-label="Modelo">
+                        <div class="slds-truncate" title="{!opp.modelo}">{!opp.modelo}</div>
+                      </td>
+                      <td data-label="Placa">
+                        <div class="slds-truncate" title="{!opp.placa}">{!opp.placa}</div>
+                      </td>
+                      <td data-label="Vendedor">
+                        <div class="slds-truncate" title="{!opp.vendedor}">{!opp.vendedor}</div>
+                      </td>
+                      <td data-label="Etapa" style="{!opp.estilo}">
+                        <div class="slds-truncate" title="{opp.etapa}">{!opp.etapa}</div>
+                      </td>
+                    </tr>
+                  </aura:iteration>
+                </tbody>
+              </table>
+          </article>
+
+          <aura:if isTrue="{!v.modo == 'asociarVehiculoExistente'}">
+            <div>
+              <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                  <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Cerrar esta ventana" onclick="{!c.cerrarAgregarVehiculo}">
+                      <lightning:icon iconName="utility:close" size="small" class="colorBlanco"/>  
+                      <span class="slds-assistive-text">Cerrar esta ventana</span>
+                    </button>
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Asociar vehiculo existente</h2>
+                  </header>
+                  <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+
+                    <div class="slds-form-element">
+                      <label class="slds-form-element__label"><abbr class="slds-required" title="required">*</abbr>Placa</label>
+                      <div class="slds-form-element__control">
+                        <input type="text" id="placaAsociada" placeholder="" required="" class="slds-input"/>
+                      </div>
+                    </div>
+
+                  </div>
+                <footer class="slds-modal__footer">
+                  <button class="slds-button slds-button_neutral" onclick="{!c.cerrarAsociarVehiculoExistente}">Cancelar</button>
+                  <button class="slds-button slds-button_brand" onclick="{!c.asociarVehiculo}">Asociar</button>
+                </footer>
+                </div>
+              </section>
+              <div class="slds-backdrop slds-backdrop_open"></div>
+            </div>
+          </aura:if>
+
+          <aura:if isTrue="{!v.modo == 'abrirAgregarVehiculo'}">
+            <div>
+              <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                  <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Cerrar esta ventana" onclick="{!c.cerrarAgregarVehiculo}">
+                      <lightning:icon iconName="utility:close" size="small" class="colorBlanco"/>  
+                      <span class="slds-assistive-text">Cerrar esta ventana</span>
+                    </button>
+                    <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Añadir vehiculo</h2>
+                  </header>
+                  <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    
+                    <lightning:select name="marcas" aura:id="marca" label="Marca" onchange="{!c.cambiaMarca}" required="true">
+                      <option text="-- Ninguno --" value="" selected="true" />
+                        <aura:iteration items="{!v.listaMarcas}" var="marca">
+                                <option text="{!marca}" />
+                            </aura:iteration>
+                    </lightning:select>
+
+                    <lightning:select name="modelos" aura:id="modelo" label="Modelos" onchange="{!c.cambiaModelo}" disabled="{!v.modeloDisabled}" required="true">
+                      <option text="-- Ninguno --" value="" selected="true" />
+                        <aura:iteration items="{!v.listaModelos}" var="modelo">
+                                <option text="{!modelo}" />
+                            </aura:iteration>
+                    </lightning:select>
+
+                    <lightning:select name="submodelos" aura:id="subModelo" label="Submodelos" disabled="{!v.subModeloDisabled}" required="true">
+                      <option text="-- Ninguno --" value="" selected="true" />
+                        <aura:iteration items="{!v.listaSubmodelos}" var="submodelo">
+                                <option text="{!submodelo}" />
+                            </aura:iteration>
+                    </lightning:select>
+
+                    <lightning:input aura:id="placa" label="Placa" name="placa" required="true"/>
+
+                    <lightning:select name="anios" aura:id="anios" label="Año" required="true">
+                      <option text="-- Ninguno --" value="" selected="true" />
+                        <aura:iteration items="{!v.listaAnios}" var="anio">
+                                <option text="{!anio}" />
+                            </aura:iteration>
+                    </lightning:select>
+
+                    <div class="slds-form-element">
+                      <label class="slds-form-element__label"><abbr class="slds-required" title="required">*</abbr>Kilometraje</label>
+                      <div class="slds-form-element__control">
+                        <input type="number" id="kilometraje" placeholder="" required="" class="slds-input"/>
+                      </div>
+                    </div>
+
+                  </div>
+                <footer class="slds-modal__footer">
+                  <button class="slds-button slds-button_neutral" disabled="{!v.crearDisabled}" onclick="{!c.cerrarAgregarVehiculo}">Cancelar</button>
+                  <button class="slds-button slds-button_brand" disabled="{!v.crearDisabled}" onclick="{!c.crearVehiculo}">Añadir</button>
+                </footer>
+                </div>
+              </section>
+              <div class="slds-backdrop slds-backdrop_open"></div>
+            </div>
+          </aura:if>
+        </aura:if>
+    </aura:if>
+</aura:component>
